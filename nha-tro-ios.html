@@ -216,11 +216,11 @@ const daysLeft = d => { if(!d) return null; return Math.ceil((new Date(d)-new Da
 // ===== INITIAL DATA =====
 const DEF_USER = { username: 'admin', password: 'nhatroxx', name: 'Chủ Nhà Trọ', phone: '0901234567' };
 const INIT_ROOMS = [
-  {id:1,name:'Phòng 101',area:20,price:3500000,electric:3500,water:120000,internet:100000,status:'rented',floor:1},
-  {id:2,name:'Phòng 102',area:25,price:4000000,electric:3500,water:120000,internet:100000,status:'rented',floor:1},
-  {id:3,name:'Phòng 201',area:20,price:3500000,electric:3500,water:120000,internet:100000,status:'vacant',floor:2},
-  {id:4,name:'Phòng 202',area:30,price:5000000,electric:3500,water:120000,internet:100000,status:'maintenance',floor:2},
-  {id:5,name:'Phòng 301',area:25,price:4200000,electric:3500,water:120000,internet:100000,status:'rented',floor:3},
+  {id:1,name:'Phòng 101',area:20,price:3500000,electric:3500,waterPrice:5000,water:120000,internet:100000,status:'rented',floor:1},
+  {id:2,name:'Phòng 102',area:25,price:4000000,electric:3500,waterPrice:5000,water:120000,internet:100000,status:'rented',floor:1},
+  {id:3,name:'Phòng 201',area:20,price:3500000,electric:3500,waterPrice:5000,water:120000,internet:100000,status:'vacant',floor:2},
+  {id:4,name:'Phòng 202',area:30,price:5000000,electric:3500,waterPrice:5000,water:120000,internet:100000,status:'maintenance',floor:2},
+  {id:5,name:'Phòng 301',area:25,price:4200000,electric:3500,waterPrice:5000,water:120000,internet:100000,status:'rented',floor:3},
 ];
 const INIT_TENANTS = [
   {id:1,roomId:1,name:'Nguyễn Văn An',phone:'0901234567',cccd:'012345678901',startDate:'2024-01-15',endDate:'2025-01-15',active:true},
@@ -511,12 +511,12 @@ function Rooms({rooms,setRooms,tenants}) {
   const filt=filter==='all'?rooms:rooms.filter(r=>r.status===filter);
   const getTenant=rId=>tenants.find(t=>t.roomId===rId&&t.active);
   const open=(r)=>{
-    if(r){setForm({name:r.name,area:r.area,price:r.price,electric:r.electric,water:r.water,internet:r.internet,status:r.status,floor:r.floor});setModal(r);}
-    else{setForm({name:'',area:'',price:'',electric:'3500',water:'120000',internet:'100000',status:'vacant',floor:''});setModal('add');}
+    if(r){setForm({name:r.name,area:r.area,price:r.price,electric:r.electric,waterPrice:r.waterPrice||5000,water:r.water,internet:r.internet,status:r.status,floor:r.floor});setModal(r);}
+    else{setForm({name:'',area:'',price:'',electric:'3500',waterPrice:'5000',water:'120000',internet:'100000',status:'vacant',floor:''});setModal('add');}
   };
   const save=()=>{
     if(!form.name||!form.price)return;
-    const d={name:form.name,area:+form.area,price:+form.price,electric:+form.electric,water:+form.water,internet:+form.internet,status:form.status,floor:+form.floor};
+    const d={name:form.name,area:+form.area,price:+form.price,electric:+form.electric,waterPrice:+(form.waterPrice||5000),water:+form.water,internet:+form.internet,status:form.status,floor:+form.floor};
     if(modal==='add')setRooms([...rooms,{...d,id:Date.now()}]);
     else setRooms(rooms.map(r=>r.id===modal.id?{...r,...d}:r));
     setModal(null);
@@ -552,7 +552,7 @@ function Rooms({rooms,setRooms,tenants}) {
             h('div',{style:{fontSize:18,fontWeight:700,color:'#1A56DB'}},fmt(room.price),h('span',{style:{fontSize:12,color:'#94A3B8',fontWeight:400}},'/tháng')),
             h('div',{style:{fontSize:12,color:'#64748B',marginTop:4,display:'flex',gap:10,flexWrap:'wrap'}},
               h('span',null,'⚡ '+room.electric.toLocaleString()+'đ/số'),
-              h('span',null,'💧 '+fmtS(room.water)+'/th'),
+              h('span',null,'💧 '+(room.waterPrice||5000).toLocaleString()+'đ/số'),
               h('span',null,'📶 '+fmtS(room.internet)+'/th')
             )
           ),
@@ -578,7 +578,7 @@ function Rooms({rooms,setRooms,tenants}) {
       h(Inp,{label:'Giá thuê (đ/tháng)',type:'number',value:form.price,onChange:e=>f('price',e.target.value),placeholder:'3500000'}),
       h('div',{className:'grid2'},
         h(Inp,{label:'Giá điện (đ/số)',type:'number',value:form.electric,onChange:e=>f('electric',e.target.value)}),
-        h(Inp,{label:'Tiền nước (đ/th)',type:'number',value:form.water,onChange:e=>f('water',e.target.value)})
+        h(Inp,{label:'Giá nước (đ/số)',type:'number',value:form.waterPrice,onChange:e=>f('waterPrice',e.target.value)})
       ),
       h(Inp,{label:'Tiền mạng (đ/th)',type:'number',value:form.internet,onChange:e=>f('internet',e.target.value)}),
       h(Sel,{label:'Trạng thái',value:form.status,onChange:e=>f('status',e.target.value),opts:[['vacant','Còn trống'],['rented','Đang thuê'],['maintenance','Bảo trì']]}),
@@ -684,7 +684,7 @@ function Invoices({invoices,setInvoices,rooms,tenants}) {
   const [mo,setMo]=useState(curMonth());
   const [showCreate,setShowCreate]=useState(false);
   const [viewInv,setViewInv]=useState(null);
-  const [form,setForm]=useState({roomId:'',month:curMonth(),electricOld:'',electricNew:'',otherFees:[]});
+  const [form,setForm]=useState({roomId:'',month:curMonth(),electricOld:'',electricNew:'',waterOld:'',waterNew:'',otherFees:[]});
   const [nf,setNf]=useState({name:'',amount:''});
   const filt=invoices.filter(i=>i.month===mo);
   const getRoom=id=>rooms.find(r=>r.id===id);
@@ -692,14 +692,18 @@ function Invoices({invoices,setInvoices,rooms,tenants}) {
   const calcTotal=f=>{
     const r=getRoom(+f.roomId);if(!r)return 0;
     const el=(+f.electricNew-+f.electricOld)*r.electric;
+    const waterUsed=(+f.waterNew-+f.waterOld)*(r.waterPrice||5000);
+    const waterTotal=Math.round(waterUsed*1.1); // +10% phí môi trường
     const fees=f.otherFees.reduce((s,x)=>s+(+x.amount),0);
-    return r.price+el+r.water+r.internet+fees;
+    return r.price+el+waterTotal+r.internet+fees;
   };
   const create=()=>{
     const r=getRoom(+form.roomId);if(!r||!form.electricNew)return;
     const ten=tenants.find(t=>t.roomId===r.id&&t.active);
-    setInvoices([...invoices,{id:Date.now(),roomId:r.id,tenantId:ten?.id,month:form.month,rentAmount:r.price,electricOld:+form.electricOld,electricNew:+form.electricNew,waterAmount:r.water,internetAmount:r.internet,otherFees:form.otherFees,status:'unpaid',paidDate:null,paymentMethod:null,total:calcTotal(form)}]);
-    setShowCreate(false);setForm({roomId:'',month:curMonth(),electricOld:'',electricNew:'',otherFees:[]});
+    const waterUsed=(+form.waterNew-+form.waterOld)*(r.waterPrice||5000);
+    const waterTotal=Math.round(waterUsed*1.1);
+    setInvoices([...invoices,{id:Date.now(),roomId:r.id,tenantId:ten?.id,month:form.month,rentAmount:r.price,electricOld:+form.electricOld,electricNew:+form.electricNew,waterOld:+form.waterOld,waterNew:+form.waterNew,waterPrice:r.waterPrice||5000,waterAmount:waterTotal,internetAmount:r.internet,otherFees:form.otherFees,status:'unpaid',paidDate:null,paymentMethod:null,total:calcTotal(form)}]);
+    setShowCreate(false);setForm({roomId:'',month:curMonth(),electricOld:'',electricNew:'',waterOld:'',waterNew:'',otherFees:[]});
   };
   const f=(k,v)=>setForm(p=>({...p,[k]:v}));
 
@@ -724,7 +728,7 @@ function Invoices({invoices,setInvoices,rooms,tenants}) {
             h(Badge,{status:inv.status,map:SI})
           ),
           h('div',{style:{fontSize:20,fontWeight:800,color:'#1A56DB'}},fmt(inv.total)),
-          h('div',{style:{fontSize:12,color:'#94A3B8',marginTop:4}},'Thuê: '+fmtS(inv.rentAmount)+' · Điện: '+(inv.electricNew-inv.electricOld)+' số · Nước: '+fmtS(inv.waterAmount))
+          h('div',{style:{fontSize:12,color:'#94A3B8',marginTop:4}},'Thuê: '+fmtS(inv.rentAmount)+' · Điện: '+(inv.electricNew-inv.electricOld)+' số · Nước: '+((inv.waterNew||0)-(inv.waterOld||0))+' số')
         );
       })
     ),
@@ -736,9 +740,14 @@ function Invoices({invoices,setInvoices,rooms,tenants}) {
         h(Inp,{label:'Chỉ số điện đầu',type:'number',value:form.electricOld,onChange:e=>f('electricOld',e.target.value)}),
         h(Inp,{label:'Chỉ số điện cuối',type:'number',value:form.electricNew,onChange:e=>f('electricNew',e.target.value)})
       ),
-      form.roomId&&form.electricNew&&h('div',{style:{background:'#EBF5FF',borderRadius:9,padding:'10px 12px',marginBottom:12}},
-        h('div',{style:{fontSize:14,fontWeight:700,color:'#1A56DB'}},'Dự tính: '+fmt(calcTotal(form))),
-        h('div',{style:{fontSize:12,color:'#64748B',marginTop:3}},'Điện: '+(+form.electricNew-+form.electricOld)+' số × '+getRoom(+form.roomId)?.electric.toLocaleString()+'đ = '+fmt((+form.electricNew-+form.electricOld)*(getRoom(+form.roomId)?.electric||0)))
+      h('div',{className:'grid2'},
+        h(Inp,{label:'Chỉ số nước đầu',type:'number',value:form.waterOld,onChange:e=>f('waterOld',e.target.value)}),
+        h(Inp,{label:'Chỉ số nước cuối',type:'number',value:form.waterNew,onChange:e=>f('waterNew',e.target.value)})
+      ),
+      form.roomId&&form.electricNew&&form.waterNew&&h('div',{style:{background:'#EBF5FF',borderRadius:9,padding:'10px 12px',marginBottom:12}},
+        h('div',{style:{fontSize:15,fontWeight:800,color:'#1A56DB',marginBottom:6}},'Dự tính: '+fmt(calcTotal(form))),
+        h('div',{style:{fontSize:12,color:'#64748B',marginBottom:2}},'⚡ Điện: '+(+form.electricNew-+form.electricOld)+' số × '+(getRoom(+form.roomId)?.electric||0).toLocaleString()+'đ = '+fmt((+form.electricNew-+form.electricOld)*(getRoom(+form.roomId)?.electric||0))),
+        h('div',{style:{fontSize:12,color:'#64748B'}},'💧 Nước: '+(+form.waterNew-+form.waterOld)+' số × '+(getRoom(+form.roomId)?.waterPrice||5000).toLocaleString()+'đ + 10% phí MT = '+fmt(Math.round((+form.waterNew-+form.waterOld)*(getRoom(+form.roomId)?.waterPrice||5000)*1.1)))
       ),
       h('div',null,
         h('label',{style:{display:'block',fontSize:12,fontWeight:600,color:'#475569',marginBottom:6}},'Phí khác'),
@@ -760,7 +769,7 @@ function Invoices({invoices,setInvoices,rooms,tenants}) {
 
     viewInv&&h(Modal,{title:'Hóa đơn – '+getRoom(viewInv.roomId)?.name,onClose:()=>setViewInv(null)},
       h('div',{style:{fontSize:12,color:'#94A3B8',marginBottom:12}},'Tháng '+viewInv.month.slice(5)+'/'+viewInv.month.slice(0,4)+' · '+getTenant(viewInv.tenantId)?.name),
-      ...[['Tiền thuê',fmt(viewInv.rentAmount)],['Tiền điện ('+( viewInv.electricNew-viewInv.electricOld)+' số)',fmt((viewInv.electricNew-viewInv.electricOld)*(getRoom(viewInv.roomId)?.electric||0))],['Tiền nước',fmt(viewInv.waterAmount)],['Tiền mạng',fmt(viewInv.internetAmount)],...viewInv.otherFees.map(f=>[f.name,fmt(f.amount)])].map(([k,v])=>h('div',{key:k,className:'info-row'},h('span',{className:'k'},k),h('span',{className:'v'},v))),
+      ...[['Tiền thuê',fmt(viewInv.rentAmount)],['Tiền điện ('+( viewInv.electricNew-viewInv.electricOld)+' số)',fmt((viewInv.electricNew-viewInv.electricOld)*(getRoom(viewInv.roomId)?.electric||0))],['💧 Nước ('+(viewInv.waterNew-viewInv.waterOld)+' số × '+(viewInv.waterPrice||5000).toLocaleString()+'đ + 10% MT)',fmt(viewInv.waterAmount)],['Tiền mạng',fmt(viewInv.internetAmount)],...viewInv.otherFees.map(f=>[f.name,fmt(f.amount)])].map(([k,v])=>h('div',{key:k,className:'info-row'},h('span',{className:'k'},k),h('span',{className:'v'},v))),
       h('div',{className:'total-row'},h('span',{className:'k'},'Tổng cộng'),h('span',{className:'v'},fmt(viewInv.total))),
       h('div',{style:{marginTop:6}},h(Badge,{status:viewInv.status,map:SI})),
       viewInv.paidDate&&h('div',{style:{fontSize:12,color:'#64748B',marginTop:6}},'Thanh toán: '+fmtD(viewInv.paidDate)+' · '+viewInv.paymentMethod)
