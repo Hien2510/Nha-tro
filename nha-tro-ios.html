@@ -241,8 +241,11 @@ const INIT_NOTIFS = [
 ];
 
 // ===== LOCAL STORAGE =====
-const load = (k,def) => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):def; } catch(e){return def;} };
-const save = (k,v) => { try { localStorage.setItem(k,JSON.stringify(v)); } catch(e){} };
+// ===== STORAGE: localStorage + cookie backup =====
+const setCookie=(k,v,days=365)=>{try{const e=new Date(Date.now()+days*864e5).toUTCString();document.cookie=k+'='+encodeURIComponent(JSON.stringify(v))+';expires='+e+';path=/;SameSite=Lax';}catch(e){}};
+const getCookie=(k)=>{try{const m=document.cookie.match('(?:^|; )'+k+'=([^;]*)');return m?JSON.parse(decodeURIComponent(m[1])):null;}catch(e){return null;}};
+const load=(k,def)=>{try{const v=localStorage.getItem(k);if(v)return JSON.parse(v);const c=getCookie(k);if(c!==null){localStorage.setItem(k,JSON.stringify(c));return c;}return def;}catch(e){return def;}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}setCookie(k,v);};
 
 // ===== ROOM/INVOICE STATUS =====
 const SR = { rented:{label:'Đang thuê',cls:'badge-green'}, vacant:{label:'Còn trống',cls:'badge-blue'}, maintenance:{label:'Bảo trì',cls:'badge-yellow'} };
@@ -292,8 +295,12 @@ function Login({onLogin}) {
 
   const doLogin=()=>{
     if(!user||!pw){setErr('Vui lòng nhập đầy đủ thông tin');return;}
-    if(user===stored.username && pw===stored.password){save('logged_in',true);onLogin(stored);}
-    else setErr('Tên đăng nhập hoặc mật khẩu không đúng');
+    const creds=load('user_credentials',DEF_USER);
+    if(user===creds.username && pw===creds.password){
+      save('logged_in',true);
+      setCookie('session_user',creds,365);
+      onLogin(creds);
+    } else setErr('Tên đăng nhập hoặc mật khẩu không đúng');
   };
 
   const doRegister=()=>{
@@ -305,6 +312,7 @@ function Login({onLogin}) {
     save('user_credentials',newUser);
     setStored(newUser);
     save('logged_in',true);
+    setCookie('session_user',newUser,365);
     onLogin(newUser);
   };
 
@@ -960,7 +968,7 @@ function App() {
   const setMaintenance=v=>{setMaintenanceState(v);save('maintenance',v);};
   const setNotifications=v=>{setNotificationsState(v);save('notifications',v);};
 
-  const onLogout=()=>{save('logged_in',false);setUser(null);setPage('dashboard');};
+  const onLogout=()=>{save('logged_in',false);setCookie('session_user',null,-1);setUser(null);setPage('dashboard');};
   const onLogin=u=>{setUser(u);};
 
   const unread=notifications.filter(n=>!n.read).length;
