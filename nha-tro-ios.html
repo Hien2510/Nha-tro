@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+<!-- PWA iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nhà Trọ">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1A56DB">
+<meta name="description" content="Ứng dụng quản lý nhà trọ toàn diện">
+
+<!-- iOS Splash / Icon (sẽ dùng favicon emoji) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231A56DB'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231A56DB'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E">
+
+<title>Nhà Trọ – Quản lý nhà trọ</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; background: #F8FAFC; color: #1E293B; overscroll-behavior: none; }
+  :root {
+    --blue: #1A56DB; --blue-dark: #1E3A5F; --blue-light: #EBF5FF;
+    --green: #22C55E; --green-light: #F0FDF4;
+    --yellow: #F59E0B; --yellow-light: #FFFBEB;
+    --red: #EF4444; --red-light: #FEF2F2;
+    --gray: #64748B; --gray-light: #F1F5F9; --border: #E2E8F0;
+    --safe-top: env(safe-area-inset-top, 44px);
+    --safe-bottom: env(safe-area-inset-bottom, 34px);
+  }
+  input, select, textarea, button { font-family: inherit; font-size: 14px; }
+  button { cursor: pointer; }
+
+  /* ===== LAYOUT ===== */
+  #app { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; background: #F8FAFC; }
+  #page { padding-bottom: calc(70px + var(--safe-bottom)); min-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ===== LOGIN ===== */
+  .login-wrap { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(160deg, #1E3A5F 0%, #1A56DB 60%, #3B82F6 100%); padding: 40px 28px; }
+  .login-logo { text-align: center; margin-bottom: 40px; }
+  .login-logo .icon { width: 80px; height: 80px; background: rgba(255,255,255,0.15); border-radius: 22px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 40px; backdrop-filter: blur(10px); border: 1.5px solid rgba(255,255,255,0.25); }
+  .login-logo h1 { color: #fff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .login-logo p { color: #93C5FD; font-size: 14px; margin-top: 4px; }
+  .login-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 20px; padding: 24px; border: 1.5px solid rgba(255,255,255,0.2); }
+  .login-field { margin-bottom: 14px; }
+  .login-field label { display: block; color: #BFDBFE; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+  .login-field input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.12); color: #fff; font-size: 15px; outline: none; }
+  .login-field input::placeholder { color: rgba(255,255,255,0.4); }
+  .login-btn { width: 100%; padding: 14px; background: #fff; color: var(--blue); border: none; border-radius: 12px; font-size: 16px; font-weight: 700; margin-top: 8px; }
+  .login-btn:active { transform: scale(0.98); }
+  .login-err { color: #FCA5A5; font-size: 13px; text-align: center; margin-top: 10px; font-weight: 500; }
+  .login-hint { text-align: center; color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 20px; }
+  .login-hint b { color: rgba(255,255,255,0.6); }
+  .change-pw-link { color: #93C5FD; font-size: 13px; text-align: center; margin-top: 12px; background: none; border: none; width: 100%; }
+
+  /* ===== CHANGE PASSWORD ===== */
+  .chpw-wrap { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(160deg, #1E3A5F 0%, #1A56DB 100%); padding: 40px 28px; }
+
+  /* ===== HEADER ===== */
+  .page-header { background: linear-gradient(135deg, #1A56DB 0%, #1E3A5F 100%); padding: calc(var(--safe-top) + 16px) 20px 20px; }
+  .page-header h2 { color: #fff; font-size: 22px; font-weight: 700; }
+  .page-header .sub { color: #93C5FD; font-size: 13px; margin-top: 2px; }
+
+  /* ===== NAV ===== */
+  #nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #fff; border-top: 1px solid var(--border); display: flex; z-index: 200; padding-bottom: var(--safe-bottom); box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 2px 6px; background: none; border: none; position: relative; min-width: 0; }
+  .nav-btn .nav-icon { font-size: 20px; line-height: 1; position: relative; }
+  .nav-btn .nav-label { font-size: 9px; font-weight: 600; margin-top: 3px; color: #94A3B8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .nav-btn.active .nav-label { color: var(--blue); }
+  .nav-btn .nav-bar { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 3px; background: var(--blue); border-radius: 3px 3px 0 0; }
+  .nav-badge { position: absolute; top: -3px; right: -5px; background: var(--red); color: #fff; border-radius: 50%; width: 15px; height: 15px; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+  /* ===== CARDS ===== */
+  .card { background: #fff; border-radius: 14px; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); margin-bottom: 10px; }
+  .card.tappable:active { transform: scale(0.99); background: #F8FAFC; }
+
+  /* ===== BADGES ===== */
+  .badge { font-size: 11px; font-weight: 600; border-radius: 20px; padding: 3px 9px; white-space: nowrap; border: 1px solid transparent; }
+  .badge-green { color: #16A34A; background: #F0FDF4; border-color: #86EFAC44; }
+  .badge-blue { color: var(--blue); background: var(--blue-light); border-color: #93C5FD44; }
+  .badge-yellow { color: #D97706; background: var(--yellow-light); border-color: #FDE68A44; }
+  .badge-red { color: var(--red); background: var(--red-light); border-color: #FCA5A544; }
+  .badge-gray { color: #6B7280; background: #F9FAFB; border-color: #E5E7EB; }
+
+  /* ===== INPUTS ===== */
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+  .field input, .field select, .field textarea { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 14px; background: #F8FAFC; outline: none; color: #1E293B; -webkit-appearance: none; }
+  .field textarea { resize: vertical; min-height: 72px; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--blue); background: #fff; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* ===== BUTTONS ===== */
+  .btn { padding: 11px 18px; border-radius: 11px; font-weight: 600; font-size: 14px; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-secondary { background: var(--gray-light); color: var(--blue-dark); }
+  .btn-success { background: var(--green-light); color: #16A34A; border: 1px solid #86EFAC; }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid #FCA5A5; }
+  .btn-full { width: 100%; }
+
+  /* ===== MODAL ===== */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; display: flex; align-items: flex-end; justify-content: center; }
+  .modal { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; padding: 20px 20px calc(24px + var(--safe-bottom)); -webkit-overflow-scrolling: touch; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .modal-head h3 { font-size: 17px; color: var(--blue-dark); font-weight: 700; }
+  .modal-close { background: var(--gray-light); border: none; border-radius: 8px; width: 32px; height: 32px; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+
+  /* ===== SECTION TITLE ===== */
+  .sect { font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; margin: 18px 0 8px; }
+
+  /* ===== DASHBOARD ===== */
+  .hero { background: linear-gradient(135deg, #1A56DB 0%, #1E3A5F 100%); padding: calc(var(--safe-top) + 20px) 20px 28px; border-radius: 0 0 26px 26px; }
+  .hero .greet { color: #93C5FD; font-size: 12px; margin-bottom: 4px; }
+  .hero h1 { color: #fff; font-size: 22px; font-weight: 800; }
+  .hero .date-str { color: #BFDBFE; font-size: 12px; margin-top: 2px; }
+  .revenue-card { background: rgba(255,255,255,0.12); border-radius: 16px; padding: 14px 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); }
+  .revenue-card .r-label { color: #93C5FD; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+  .revenue-card .r-val { color: #fff; font-size: 26px; font-weight: 800; margin-top: 2px; }
+  .revenue-card .u-label { color: #FCA5A5; font-size: 10px; font-weight: 700; text-align: right; }
+  .revenue-card .u-val { color: #FCA5A5; font-size: 18px; font-weight: 700; text-align: right; }
+  .room-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .stat-box { border-radius: 14px; padding: 12px 10px; text-align: center; border: 1.5px solid transparent; }
+  .stat-box .s-ico { font-size: 24px; }
+  .stat-box .s-num { font-size: 24px; font-weight: 800; margin-top: 2px; }
+  .stat-box .s-lbl { font-size: 11px; font-weight: 600; margin-top: 2px; }
+  .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .qa-card { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); display: flex; align-items: center; gap: 10px; }
+  .qa-card:active { background: #F8FAFC; transform: scale(0.99); }
+  .qa-ico { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .qa-lbl { font-weight: 600; color: var(--blue-dark); font-size: 14px; }
+  .alert-bar { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 13px; padding: 11px 14px; display: flex; gap: 10px; align-items: center; }
+  .alert-bar .a-ico { font-size: 22px; }
+  .alert-bar .a-title { font-size: 13px; font-weight: 600; color: #92400E; }
+  .alert-bar .a-sub { font-size: 12px; color: #B45309; }
+  .alert-bar .a-arr { color: #B45309; font-size: 20px; margin-left: auto; }
+
+  /* ===== FILTER TABS ===== */
+  .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { white-space: nowrap; padding: 7px 16px; border-radius: 20px; border: none; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+  .tab.on { background: var(--blue); color: #fff; }
+  .tab.off { background: var(--gray-light); color: #64748B; }
+
+  /* ===== MISC ===== */
+  .empty { text-align: center; padding: 50px 20px; color: #94A3B8; }
+  .empty .e-ico { font-size: 48px; margin-bottom: 10px; }
+  .empty p { font-size: 14px; }
+  .row { display: flex; justify-content: space-between; align-items: center; }
+  .divider { border: none; border-top: 1px solid #F1F5F9; margin: 4px 0; }
+  .info-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #F8FAFC; }
+  .info-row .k { color: #64748B; font-size: 14px; }
+  .info-row .v { font-weight: 600; color: var(--blue-dark); font-size: 14px; }
+  .total-row { display: flex; justify-content: space-between; padding: 12px 0 4px; }
+  .total-row .k { font-size: 16px; font-weight: 700; color: var(--blue-dark); }
+  .total-row .v { font-size: 18px; font-weight: 800; color: var(--blue); }
+  .user-info { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 14px; margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+  .user-avatar { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+  /* ===== CHART ===== */
+  .chart-wrap { display: flex; align-items: flex-end; gap: 6px; height: 110px; padding: 0 4px; }
+  .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .chart-bars { flex: 1; width: 100%; position: relative; display: flex; align-items: flex-end; }
+  .bar-bg { position: absolute; bottom: 0; left: 0; right: 0; background: #EBF5FF; border-radius: 5px 5px 0 0; }
+  .bar-fg { position: absolute; bottom: 0; left: 0; right: 0; background: var(--blue); border-radius: 5px 5px 0 0; }
+  .chart-label { font-size: 9px; color: #94A3B8; }
+  .chart-val { font-size: 9px; color: #64748B; font-weight: 600; }
+
+  /* iOS PWA Safe Area */
+  #nav { padding-bottom: max(var(--safe-bottom), 8px); }
+  .hero { padding-top: max(calc(var(--safe-top) + 20px), 60px); }
+  .page-header { padding-top: max(calc(var(--safe-top) + 16px), 56px); }
+  
+  /* iOS tap state */
+  * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  input, select, textarea { -webkit-appearance: none; border-radius: 10px; }
+  
+  /* Smooth scroll */
+  #page { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
+  
+  /* Install banner iOS */
+  #install-banner { animation: slideUp 0.4s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  
+  /* Register / Login screen button group */
+  .login-action-row { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 14px; }
+  .login-action-btn { flex: 1; padding: 11px 8px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.12); color: #fff; }
+  .login-action-btn.primary-alt { background: rgba(255,255,255,0.22); }
+  .login-action-btn:active { transform: scale(0.97); }
+</style>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="root"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const { useState, useEffect, useCallback, useRef } = React;
+const h = React.createElement;
+
+// ===== HELPERS =====
+const fmt = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+const fmtS = n => { if(n>=1000000) return (n/1000000).toFixed(1).replace('.0','')+'tr'; if(n>=1000) return (n/1000).toFixed(0)+'k'; return n; };
+const fmtD = d => { if(!d) return '—'; const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
+const today = () => new Date().toISOString().slice(0,10);
+const curMonth = () => new Date().toISOString().slice(0,7);
+const daysLeft = d => { if(!d) return null; return Math.ceil((new Date(d)-new Date())/86400000); };
+
+// ===== INITIAL DATA =====
+const DEF_USER = { username: 'admin', password: 'nhatroxx', name: 'Chủ Nhà Trọ', phone: '0901234567' };
+const INIT_ROOMS = [
+  {id:1,name:'Phòng 101',area:20,price:3500000,electric:3500,water:120000,internet:100000,status:'rented',floor:1},
+  {id:2,name:'Phòng 102',area:25,price:4000000,electric:3500,water:120000,internet:100000,status:'rented',floor:1},
+  {id:3,name:'Phòng 201',area:20,price:3500000,electric:3500,water:120000,internet:100000,status:'vacant',floor:2},
+  {id:4,name:'Phòng 202',area:30,price:5000000,electric:3500,water:120000,internet:100000,status:'maintenance',floor:2},
+  {id:5,name:'Phòng 301',area:25,price:4200000,electric:3500,water:120000,internet:100000,status:'rented',floor:3},
+];
+const INIT_TENANTS = [
+  {id:1,roomId:1,name:'Nguyễn Văn An',phone:'0901234567',cccd:'012345678901',startDate:'2024-01-15',endDate:'2025-01-15',active:true},
+  {id:2,roomId:2,name:'Trần Thị Bình',phone:'0912345678',cccd:'098765432109',startDate:'2023-06-01',endDate:'2024-06-01',active:true},
+  {id:3,roomId:5,name:'Lê Minh Châu',phone:'0923456789',cccd:'111222333444',startDate:'2024-03-01',endDate:'2025-03-01',active:true},
+];
+const INIT_INVOICES = [
+  {id:1,roomId:1,tenantId:1,month:'2025-06',rentAmount:3500000,electricOld:1200,electricNew:1380,waterAmount:120000,internetAmount:100000,otherFees:[{name:'Phí xe máy',amount:100000}],status:'paid',paidDate:'2025-06-05',paymentMethod:'Chuyển khoản',total:4430000},
+  {id:2,roomId:2,tenantId:2,month:'2025-06',rentAmount:4000000,electricOld:980,electricNew:1200,waterAmount:120000,internetAmount:100000,otherFees:[],status:'unpaid',paidDate:null,paymentMethod:null,total:4990000},
+  {id:3,roomId:5,tenantId:3,month:'2025-06',rentAmount:4200000,electricOld:500,electricNew:680,waterAmount:120000,internetAmount:100000,otherFees:[{name:'Phí rác',amount:20000}],status:'overdue',paidDate:null,paymentMethod:null,total:5070000},
+  {id:4,roomId:1,tenantId:1,month:'2025-05',rentAmount:3500000,electricOld:1050,electricNew:1200,waterAmount:120000,internetAmount:100000,otherFees:[{name:'Phí xe máy',amount:100000}],status:'paid',paidDate:'2025-05-04',paymentMethod:'Tiền mặt',total:4345000},
+];
+const INIT_MAINTENANCE = [
+  {id:1,roomId:1,description:'Bóng đèn phòng tắm bị cháy',priority:'low',status:'done',createdAt:'2025-06-10',updatedAt:'2025-06-11'},
+  {id:2,roomId:2,description:'Máy lạnh không hoạt động',priority:'high',status:'pending',createdAt:'2025-06-18',updatedAt:'2025-06-18'},
+  {id:3,roomId:4,description:'Ống nước bị rò rỉ, cần sửa toàn bộ',priority:'urgent',status:'in-progress',createdAt:'2025-06-15',updatedAt:'2025-06-16'},
+];
+const INIT_NOTIFS = [
+  {id:1,type:'overdue',title:'Hóa đơn quá hạn',message:'Phòng 301 chưa thanh toán tháng 6/2025',read:false,createdAt:'2025-06-16'},
+  {id:2,type:'maintenance',title:'Yêu cầu bảo trì mới',message:'Phòng 102 báo máy lạnh hỏng – ưu tiên cao',read:false,createdAt:'2025-06-18'},
+  {id:3,type:'contract',title:'Hợp đồng sắp hết hạn',message:'Hợp đồng phòng 102 hết hạn sau 13 ngày',read:true,createdAt:'2025-06-15'},
+];
+
+// ===== LOCAL STORAGE =====
+// ===== STORAGE: localStorage + cookie backup =====
+const setCookie=(k,v,days=365)=>{try{const e=new Date(Date.now()+days*864e5).toUTCString();document.cookie=k+'='+encodeURIComponent(JSON.stringify(v))+';expires='+e+';path=/;SameSite=Lax';}catch(e){}};
+const getCookie=(k)=>{try{const m=document.cookie.match('(?:^|; )'+k+'=([^;]*)');return m?JSON.parse(decodeURIComponent(m[1])):null;}catch(e){return null;}};
+const load=(k,def)=>{try{const v=localStorage.getItem(k);if(v)return JSON.parse(v);const c=getCookie(k);if(c!==null){localStorage.setItem(k,JSON.stringify(c));return c;}return def;}catch(e){return def;}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}setCookie(k,v);};
+
+// ===== ROOM/INVOICE STATUS =====
+const SR = { rented:{label:'Đang thuê',cls:'badge-green'}, vacant:{label:'Còn trống',cls:'badge-blue'}, maintenance:{label:'Bảo trì',cls:'badge-yellow'} };
+const SI = { paid:{label:'Đã thu',cls:'badge-green'}, unpaid:{label:'Chưa thu',cls:'badge-gray'}, overdue:{label:'Quá hạn',cls:'badge-red'} };
+const SM = { pending:{label:'Chờ xử lý',cls:'badge-yellow'}, 'in-progress':{label:'Đang xử lý',cls:'badge-blue'}, done:{label:'Hoàn thành',cls:'badge-green'} };
+const PRIO = { low:{label:'Thấp',color:'#6B7280'}, high:{label:'Cao',color:'#F59E0B'}, urgent:{label:'Khẩn cấp',color:'#EF4444'} };
+const NICN = { overdue:'💸', maintenance:'🔧', contract:'📋', invoice:'📄' };
+
+// ===== SMALL COMPONENTS =====
+const Badge = ({status,map}) => {
+  const s=map[status]||{label:status,cls:'badge-gray'};
+  return h('span',{className:'badge '+s.cls},s.label);
+};
+
+const Modal = ({title,onClose,children}) =>
+  h('div',{className:'overlay',onClick:e=>{if(e.target.className.includes('overlay'))onClose();}},
+    h('div',{className:'modal'},
+      h('div',{className:'modal-head'},
+        h('h3',null,title),
+        h('button',{className:'modal-close',onClick:onClose},'✕')
+      ),
+      children
+    )
+  );
+
+const Field = ({label,children}) => h('div',{className:'field'},label&&h('label',null,label),children);
+const Inp = ({label,...p}) => h(Field,{label},h('input',p));
+const Sel = ({label,opts,...p}) => h(Field,{label},h('select',p,...opts.map(([v,l])=>h('option',{key:v,value:v},l))));
+const Btn = ({variant='primary',className='',style={},children,...p}) =>
+  h('button',{className:`btn btn-${variant} ${className}`,style,...p},children);
+const SectTitle = ({children}) => h('div',{className:'sect'},children);
+
+// ===== LOGIN =====
+function Login({onLogin}) {
+  const [screen,setScreen]=useState('login'); // login | register | changepw
+  const [user,setUser]=useState('');
+  const [pw,setPw]=useState('');
+  const [err,setErr]=useState('');
+  const [stored,setStored]=useState(()=>load('user_credentials',DEF_USER));
+  const [reg,setReg]=useState({name:'',phone:'',username:'',password:'',confirm:''});
+  const [regErr,setRegErr]=useState('');
+  const [chForm,setChForm]=useState({oldPw:'',newPw:'',confirmPw:''});
+  const [chErr,setChErr]=useState('');
+
+  const reset=()=>{setErr('');setRegErr('');setChErr('');};
+  const rf=(k,v)=>setReg(p=>({...p,[k]:v}));
+
+  const doLogin=()=>{
+    if(!user||!pw){setErr('Vui lòng nhập đầy đủ thông tin');return;}
+    const creds=load('user_credentials',DEF_USER);
+    if(user===creds.username && pw===creds.password){
+      save('logged_in',true);
+      setCookie('session_user',creds,365);
+      fsSet('user_credentials',creds).catch(()=>{});
+      onLogin(creds);
+    } else setErr('Tên đăng nhập hoặc mật khẩu không đúng');
+  };
+
+  const doRegister=()=>{
+    if(!reg.name||!reg.username||!reg.password){setRegErr('Vui lòng điền đủ các trường bắt buộc (*)');return;}
+    if(reg.username===stored.username){setRegErr('Tên đăng nhập đã tồn tại, vui lòng chọn tên khác');return;}
+    if(reg.password.length<6){setRegErr('Mật khẩu phải có ít nhất 6 ký tự');return;}
+    if(reg.password!==reg.confirm){setRegErr('Mật khẩu xác nhận không khớp');return;}
+    const newUser={username:reg.username,password:reg.password,name:reg.name,phone:reg.phone};
+    save('user_credentials',newUser);
+    setStored(newUser);
+    save('logged_in',true);
+    setCookie('session_user',newUser,365);
+    onLogin(newUser);
+  };
+
+  const doChangePw=()=>{
+    if(chForm.oldPw!==stored.password){setChErr('Mật khẩu hiện tại không đúng');return;}
+    if(chForm.newPw.length<6){setChErr('Mật khẩu mới phải có ít nhất 6 ký tự');return;}
+    if(chForm.newPw!==chForm.confirmPw){setChErr('Mật khẩu xác nhận không khớp');return;}
+    const updated={...stored,password:chForm.newPw};
+    save('user_credentials',updated);
+    setStored(updated);
+    setScreen('login');setChErr('');setChForm({oldPw:'',newPw:'',confirmPw:''});
+    alert('Doi mat khau thanh cong!');
+  };
+
+  if(screen==='register') return h('div',{className:'login-wrap'},
+    h('div',{className:'login-logo'},
+      h('div',{className:'icon'},'\u{1F4DD}'),
+      h('h1',null,'\u0110\u0103ng k\u00FD'),
+      h('p',null,'T\u1EA1o t\u00E0i kho\u1EA3n m\u1EDBi'),
+    ),
+    h('div',{className:'login-card'},
+      h('div',{className:'login-field'},
+        h('label',null,'H\u1ECD v\u00E0 t\u00EAn *'),
+        h('input',{type:'text',placeholder:'Nguy\u1EC5n V\u0103n A',value:reg.name,onChange:e=>rf('name',e.target.value)})
+      ),
+      h('div',{className:'login-field'},
+        h('label',null,'S\u1ED1 \u0111i\u1EC7n tho\u1EA1i'),
+        h('input',{type:'tel',placeholder:'09xxxxxxxx',value:reg.phone,onChange:e=>rf('phone',e.target.value)})
+      ),
+      h('div',{className:'login-field'},
+        h('label',null,'T\u00EAn \u0111\u0103ng nh\u1EADp *'),
+        h('input',{type:'text',placeholder:'Ch\u1ECDn t\u00EAn \u0111\u0103ng nh\u1EADp',value:reg.username,onChange:e=>rf('username',e.target.value)})
+      ),
+      h('div',{className:'login-field'},
+        h('label',null,'M\u1EADt kh\u1EA9u * (\u00EDt nh\u1EA5t 6 k\u00FD t\u1EF1)'),
+        h('input',{type:'password',placeholder:'Nh\u1EADp m\u1EADt kh\u1EA9u',value:reg.password,onChange:e=>rf('password',e.target.value)})
+      ),
+      h('div',{className:'login-field'},
+        h('label',null,'X\u00E1c nh\u1EADn m\u1EADt kh\u1EA9u *'),
+        h('input',{type:'password',placeholder:'Nh\u1EADp l\u1EA1i m\u1EADt kh\u1EA9u',value:reg.confirm,onChange:e=>rf('confirm',e.target.value)})
+      ),
+      regErr&&h('div',{className:'login-err'},'\u26A0\uFE0F '+regErr),
+      h('button',{className:'login-btn',onClick:doRegister},'\u2705 T\u1EA1o t\u00E0i kho\u1EA3n'),
+      h('button',{className:'change-pw-link',onClick:()=>{setScreen('login');reset();}},
+        '\u2190 \u0110\u00E3 c\u00F3 t\u00E0i kho\u1EA3n? \u0110\u0103ng nh\u1EADp'
+      ),
+    )
+  );
+
+  if(screen==='changepw') return h('div',{className:'chpw-wrap'},
+    h('div',{className:'login-logo'},
+      h('div',{className:'icon'},'\u{1F512}'),
+      h('h1',null,'\u0110\u1ED5i m\u1EADt kh\u1EA9u'),
+    ),
+    h('div',{className:'login-card'},
+      h('div',{className:'login-field'},h('label',null,'M\u1EADt kh\u1EA9u hi\u1EC7n t\u1EA1i'),h('input',{type:'password',placeholder:'Nh\u1EADp m\u1EADt kh\u1EA9u c\u0169',value:chForm.oldPw,onChange:e=>setChForm({...chForm,oldPw:e.target.value})})),
+      h('div',{className:'login-field'},h('label',null,'M\u1EADt kh\u1EA9u m\u1EDBi'),h('input',{type:'password',placeholder:'\u00CDt nh\u1EA5t 6 k\u00FD t\u1EF1',value:chForm.newPw,onChange:e=>setChForm({...chForm,newPw:e.target.value})})),
+      h('div',{className:'login-field'},h('label',null,'X\u00E1c nh\u1EADn m\u1EADt kh\u1EA9u m\u1EDBi'),h('input',{type:'password',placeholder:'Nh\u1EADp l\u1EA1i m\u1EADt kh\u1EA9u m\u1EDBi',value:chForm.confirmPw,onChange:e=>setChForm({...chForm,confirmPw:e.target.value})})),
+      chErr&&h('div',{className:'login-err'},chErr),
+      h('button',{className:'login-btn',onClick:doChangePw},'\uD83D\uDCBE L\u01B0u m\u1EADt kh\u1EA9u m\u1EDBi'),
+      h('button',{className:'change-pw-link',onClick:()=>{setScreen('login');reset();}},'\u2190 Quay l\u1EA1i \u0111\u0103ng nh\u1EADp'),
+    )
+  );
+
+  return h('div',{className:'login-wrap'},
+    h('div',{className:'login-logo'},
+      h('div',{className:'icon'},'\uD83C\uDFE0'),
+      h('h1',null,'Nh\u00E0 Tr\u1ECD'),
+      h('p',null,'H\u1EC7 th\u1ED1ng qu\u1EA3n l\u00FD nh\u00E0 tr\u1ECD'),
+    ),
+    h('div',{className:'login-card'},
+      h('div',{className:'login-field'},
+        h('label',null,'T\u00EAn \u0111\u0103ng nh\u1EADp'),
+        h('input',{type:'text',placeholder:'Nh\u1EADp t\u00EAn \u0111\u0103ng nh\u1EADp',value:user,onChange:e=>{setUser(e.target.value);setErr('');}})
+      ),
+      h('div',{className:'login-field'},
+        h('label',null,'M\u1EADt kh\u1EA9u'),
+        h('input',{type:'password',placeholder:'Nh\u1EADp m\u1EADt kh\u1EA9u',value:pw,
+          onChange:e=>{setPw(e.target.value);setErr('');},
+          onKeyDown:e=>e.key==='Enter'&&doLogin()
+        })
+      ),
+      err&&h('div',{className:'login-err'},'\u26A0\uFE0F '+err),
+      h('button',{className:'login-btn',onClick:doLogin},'\uD83D\uDD10 \u0110\u0103ng nh\u1EADp'),
+      h('div',{style:{marginTop:12,borderTop:'1px solid rgba(255,255,255,0.15)',paddingTop:12,display:'flex',gap:8}},
+        h('button',{className:'change-pw-link',style:{flex:1,background:'rgba(255,255,255,0.12)',border:'1.5px solid rgba(255,255,255,0.25)',borderRadius:10,padding:'10px',fontWeight:600},onClick:()=>{setScreen('register');reset();}},'\uD83D\uDCDD \u0110\u0103ng k\u00FD'),
+        h('button',{className:'change-pw-link',style:{flex:1,background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:10,padding:'10px'},onClick:()=>{setScreen('changepw');reset();}},'\uD83D\uDD11 \u0110\u1ED5i m\u1EADt kh\u1EA9u'),
+      ),
+    ),
+    h('div',{className:'login-hint'},h('span',null,'M\u1EB7c \u0111\u1ECBnh: '),h('b',null,'admin / nhatroxx'))
+  );
+}
+
+
+// ===== DASHBOARD =====
+function Dashboard({rooms,tenants,invoices,maintenance,notifications,setPage,user,onLogout}) {
+  const rented=rooms.filter(r=>r.status==='rented').length;
+  const vacant=rooms.filter(r=>r.status==='vacant').length;
+  const maint=rooms.filter(r=>r.status==='maintenance').length;
+  const thisMo=curMonth();
+  const moInv=invoices.filter(i=>i.month===thisMo);
+  const revenue=moInv.filter(i=>i.status==='paid').reduce((s,i)=>s+i.total,0);
+  const unpaid=invoices.filter(i=>i.status==='unpaid'||i.status==='overdue').length;
+  const unread=notifications.filter(n=>!n.read).length;
+  const pendingM=maintenance.filter(m=>m.status!=='done').length;
+  const expiring=tenants.filter(t=>{if(!t.active||!t.endDate)return false;const d=daysLeft(t.endDate);return d>=0&&d<=30;}).length;
+  const dateStr=new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  return h('div',null,
+    h('div',{className:'hero'},
+      h('div',{className:'greet'},'Xin chào 👋'),
+      h('h1',null,'Tổng quan nhà trọ'),
+      h('div',{className:'date-str'},dateStr),
+      h('div',{className:'user-info'},
+        h('div',{className:'user-avatar'},'👤'),
+        h('div',{style:{flex:1}},
+          h('div',{style:{color:'#fff',fontWeight:700,fontSize:14}},user?.name||'Chủ nhà'),
+          h('div',{style:{color:'#93C5FD',fontSize:12}},user?.phone||''),
+        ),
+        h('button',{onClick:onLogout,style:{background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.25)',borderRadius:9,color:'#fff',padding:'6px 12px',fontSize:12,fontWeight:600}},'Đăng xuất')
+      ),
+      h('div',{className:'revenue-card'},
+        h('div',null,
+          h('div',{className:'r-label'},'DOANH THU THÁNG NÀY'),
+          h('div',{className:'r-val'},fmtS(revenue)),
+        ),
+        h('div',null,
+          h('div',{className:'u-label'},'CHƯA THU'),
+          h('div',{className:'u-val'},unpaid+' hóa đơn'),
+        )
+      )
+    ),
+
+    h('div',{style:{padding:'0 16px'}},
+      (unread>0||expiring>0)&&h('div',{className:'alert-bar',style:{margin:'14px 0 0'},onClick:()=>setPage('notifications')},
+        h('span',{className:'a-ico'},'🔔'),
+        h('div',{style:{flex:1}},
+          h('div',{className:'a-title'},unread+' thông báo chưa đọc'),
+          expiring>0&&h('div',{className:'a-sub'},expiring+' hợp đồng sắp hết hạn'),
+        ),
+        h('span',{className:'a-arr'},'›')
+      ),
+
+      h(SectTitle,null,'Trạng thái phòng'),
+      h('div',{className:'room-stats'},
+        ...[
+          {label:'Đang thuê',val:rented,color:'#16A34A',bg:'#F0FDF4',bdr:'#86EFAC44',ico:'🏠'},
+          {label:'Còn trống',val:vacant,color:'#1A56DB',bg:'#EBF5FF',bdr:'#93C5FD44',ico:'🔑'},
+          {label:'Bảo trì',val:maint,color:'#D97706',bg:'#FFFBEB',bdr:'#FDE68A44',ico:'🔧'},
+        ].map(s=>h('div',{key:s.label,className:'stat-box',style:{background:s.bg,borderColor:s.bdr,cursor:'pointer'},onClick:()=>setPage('rooms')},
+          h('div',{className:'s-ico'},s.ico),
+          h('div',{className:'s-num',style:{color:s.color}},s.val),
+          h('div',{className:'s-lbl',style:{color:s.color}},s.label),
+        ))
+      ),
+
+      h(SectTitle,null,'Thao tác nhanh'),
+      h('div',{className:'qa-grid'},
+        ...[
+          {label:'Tạo hóa đơn',ico:'📄',pg:'invoices',bg:'#EBF5FF'},
+          {label:'Thu tiền',ico:'💰',pg:'payments',bg:'#F0FDF4'},
+          {label:'Bảo trì',ico:'🔧',pg:'maintenance',bg:'#FFFBEB'},
+          {label:'Báo cáo',ico:'📊',pg:'reports',bg:'#F5F3FF'},
+        ].map(a=>h('div',{key:a.pg,className:'qa-card',style:{cursor:'pointer'},onClick:()=>setPage(a.pg)},
+          h('div',{className:'qa-ico',style:{background:a.bg}},a.ico),
+          h('div',{className:'qa-lbl'},a.label)
+        ))
+      ),
+
+      pendingM>0&&h('div',null,
+        h(SectTitle,null,'Cần xử lý'),
+        h('div',{className:'card tappable',style:{display:'flex',gap:12,alignItems:'center',cursor:'pointer'},onClick:()=>setPage('maintenance')},
+          h('div',{style:{width:44,height:44,background:'#FEF3C7',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}},'🔧'),
+          h('div',{style:{flex:1}},
+            h('div',{style:{fontWeight:600,color:'#1E3A5F'}},pendingM+' yêu cầu bảo trì'),
+            h('div',{style:{fontSize:12,color:'#94A3B8'}},'Đang chờ hoặc đang xử lý')
+          ),
+          h('span',{style:{color:'#94A3B8',fontSize:20}},'›')
+        )
+      ),
+      h('div',{style:{height:8}})
+    )
+  );
+}
+
+// ===== ROOMS =====
+function Rooms({rooms,setRooms,tenants}) {
+  const [filter,setFilter]=useState('all');
+  const [modal,setModal]=useState(null); // null | 'add' | room obj
+  const [form,setForm]=useState({});
+  const filt=filter==='all'?rooms:rooms.filter(r=>r.status===filter);
+  const getTenant=rId=>tenants.find(t=>t.roomId===rId&&t.active);
+  const open=(r)=>{
+    if(r){setForm({name:r.name,area:r.area,price:r.price,electric:r.electric,water:r.water,internet:r.internet,status:r.status,floor:r.floor});setModal(r);}
+    else{setForm({name:'',area:'',price:'',electric:'3500',water:'120000',internet:'100000',status:'vacant',floor:''});setModal('add');}
+  };
+  const save=()=>{
+    if(!form.name||!form.price)return;
+    const d={name:form.name,area:+form.area,price:+form.price,electric:+form.electric,water:+form.water,internet:+form.internet,status:form.status,floor:+form.floor};
+    if(modal==='add')setRooms([...rooms,{...d,id:Date.now()}]);
+    else setRooms(rooms.map(r=>r.id===modal.id?{...r,...d}:r));
+    setModal(null);
+  };
+  const del=id=>{if(window.confirm('Xóa phòng này?'))setRooms(rooms.filter(r=>r.id!==id));};
+  const f=(k,v)=>setForm(p=>({...p,[k]:v}));
+
+  return h('div',null,
+    h('div',{className:'page-header'},
+      h('div',{className:'row'},
+        h('div',null,h('h2',null,'Quản lý phòng'),h('div',{className:'sub'},rooms.length+' phòng')),
+        h(Btn,{onClick:()=>open(null),style:{padding:'8px 16px',fontSize:13}},'+ Thêm phòng')
+      )
+    ),
+    h('div',{style:{padding:'14px 16px 0'}},
+      h('div',{className:'tabs',style:{marginBottom:14}},
+        ...([['all','Tất cả'],['rented','Đang thuê'],['vacant','Còn trống'],['maintenance','Bảo trì']]).map(([v,l])=>
+          h('button',{key:v,className:'tab '+(filter===v?'on':'off'),onClick:()=>setFilter(v)},l)
+        )
+      ),
+      filt.length===0&&h('div',{className:'empty'},h('div',{className:'e-ico'},'🏠'),h('p',null,'Không có phòng nào')),
+      filt.map(room=>{
+        const ten=getTenant(room.id);
+        return h('div',{key:room.id,className:'card'},
+          h('div',{className:'row',style:{marginBottom:8}},
+            h('div',null,
+              h('div',{style:{fontWeight:700,fontSize:16,color:'#1E3A5F'}},room.name),
+              h('div',{style:{fontSize:12,color:'#94A3B8',marginTop:2}},room.area+'m² · Tầng '+room.floor)
+            ),
+            h(Badge,{status:room.status,map:SR})
+          ),
+          h('div',{style:{background:'#F8FAFC',borderRadius:9,padding:'9px 12px',marginBottom:ten?10:10}},
+            h('div',{style:{fontSize:18,fontWeight:700,color:'#1A56DB'}},fmt(room.price),h('span',{style:{fontSize:12,color:'#94A3B8',fontWeight:400}},'/tháng')),
+            h('div',{style:{fontSize:12,color:'#64748B',marginTop:4,display:'flex',gap:10,flexWrap:'wrap'}},
+              h('span',null,'⚡ '+room.electric.toLocaleString()+'đ/số'),
+              h('span',null,'💧 '+fmtS(room.water)+'/th'),
+              h('span',null,'📶 '+fmtS(room.internet)+'/th')
+            )
+          ),
+          ten&&h('div',{style:{background:'#EBF5FF',borderRadius:9,padding:'8px 12px',marginBottom:10,fontSize:13}},
+            h('b',{style:{color:'#1E3A5F'}},'👤 '+ten.name),h('span',{style:{color:'#64748B',marginLeft:8}},'📱 '+ten.phone)
+          ),
+          h('div',{style:{display:'flex',gap:8}},
+            h(Btn,{variant:'secondary',style:{flex:1,padding:'8px',fontSize:13},onClick:()=>open(room)},'✏️ Sửa'),
+            h('select',{value:room.status,onChange:e=>setRooms(rooms.map(r=>r.id===room.id?{...r,status:e.target.value}:r)),style:{flex:1,padding:'8px',borderRadius:9,border:'1.5px solid #E2E8F0',fontSize:13,background:'#F8FAFC',WebkitAppearance:'none'}},
+              h('option',{value:'rented'},'Đang thuê'),h('option',{value:'vacant'},'Còn trống'),h('option',{value:'maintenance'},'Bảo trì')
+            ),
+            h(Btn,{variant:'danger',style:{padding:'8px 12px',fontSize:13},onClick:()=>del(room.id)},'🗑')
+          )
+        );
+      })
+    ),
+    modal&&h(Modal,{title:modal==='add'?'Thêm phòng mới':'Sửa phòng',onClose:()=>setModal(null)},
+      h(Inp,{label:'Tên phòng',value:form.name,onChange:e=>f('name',e.target.value),placeholder:'VD: Phòng 101'}),
+      h('div',{className:'grid2'},
+        h(Inp,{label:'Tầng',type:'number',value:form.floor,onChange:e=>f('floor',e.target.value),placeholder:'1'}),
+        h(Inp,{label:'Diện tích (m²)',type:'number',value:form.area,onChange:e=>f('area',e.target.value),placeholder:'20'})
+      ),
+      h(Inp,{label:'Giá thuê (đ/tháng)',type:'number',value:form.price,onChange:e=>f('price',e.target.value),placeholder:'3500000'}),
+      h('div',{className:'grid2'},
+        h(Inp,{label:'Giá điện (đ/số)',type:'number',value:form.electric,onChange:e=>f('electric',e.target.value)}),
+        h(Inp,{label:'Tiền nước (đ/th)',type:'number',value:form.water,onChange:e=>f('water',e.target.value)})
+      ),
+      h(Inp,{label:'Tiền mạng (đ/th)',type:'number',value:form.internet,onChange:e=>f('internet',e.target.value)}),
+      h(Sel,{label:'Trạng thái',value:form.status,onChange:e=>f('status',e.target.value),opts:[['vacant','Còn trống'],['rented','Đang thuê'],['maintenance','Bảo trì']]}),
+      h('div',{style:{display:'flex',gap:10,marginTop:8}},
+        h(Btn,{variant:'secondary',style:{flex:1},onClick:()=>setModal(null)},'Hủy'),
+        h(Btn,{style:{flex:2},onClick:save},'💾 Lưu')
+      )
+    )
+  );
+}
+
+// ===== TENANTS =====
+function Tenants({tenants,setTenants,rooms}) {
+  const [modal,setModal]=useState(null);
+  const [view,setView]=useState(null);
+  const [form,setForm]=useState({});
+  const getRoom=rId=>rooms.find(r=>r.id===rId);
+  const open=(t)=>{
+    if(t){setForm({name:t.name,phone:t.phone,cccd:t.cccd,startDate:t.startDate,endDate:t.endDate,roomId:t.roomId});setModal(t);}
+    else{setForm({name:'',phone:'',cccd:'',startDate:today(),endDate:'',roomId:rooms.find(r=>r.status==='vacant')?.id||''});setModal('add');}
+  };
+  const save=()=>{
+    if(!form.name||!form.phone||!form.roomId)return;
+    const d={name:form.name,phone:form.phone,cccd:form.cccd,startDate:form.startDate,endDate:form.endDate,roomId:+form.roomId,active:true};
+    if(modal==='add')setTenants([...tenants,{...d,id:Date.now()}]);
+    else setTenants(tenants.map(t=>t.id===modal.id?{...t,...d}:t));
+    setModal(null);
+  };
+  const terminate=id=>{if(window.confirm('Kết thúc hợp đồng?'))setTenants(tenants.map(t=>t.id===id?{...t,active:false}:t));};
+  const f=(k,v)=>setForm(p=>({...p,[k]:v}));
+
+  return h('div',null,
+    h('div',{className:'page-header'},
+      h('div',{className:'row'},
+        h('div',null,h('h2',null,'Người thuê'),h('div',{className:'sub'},tenants.filter(t=>t.active).length+' đang thuê')),
+        h(Btn,{onClick:()=>open(null),style:{padding:'8px 16px',fontSize:13}},'+ Thêm')
+      )
+    ),
+    h('div',{style:{padding:'14px 16px 0'}},
+      tenants.filter(t=>t.active).length===0&&h('div',{className:'empty'},h('div',{className:'e-ico'},'👤'),h('p',null,'Chưa có người thuê')),
+      tenants.filter(t=>t.active).map(ten=>{
+        const room=getRoom(ten.roomId);
+        const dl=daysLeft(ten.endDate);
+        const exp=dl!==null&&dl<=30&&dl>=0;
+        return h('div',{key:ten.id,className:'card'},
+          h('div',{className:'row',style:{marginBottom:8}},
+            h('div',null,
+              h('div',{style:{fontWeight:700,fontSize:15,color:'#1E3A5F'}},'👤 '+ten.name),
+              h('div',{style:{fontSize:12,color:'#64748B',marginTop:2}},'📱 '+ten.phone+' · 🪪 '+ten.cccd)
+            ),
+            room&&h(Badge,{status:'rented',map:{rented:{label:room.name,cls:'badge-blue'}}})
+          ),
+          h('div',{style:{display:'flex',gap:16,fontSize:12,color:'#64748B'}},
+            h('span',null,'📅 BĐ: '+fmtD(ten.startDate)),h('span',null,'📅 KT: '+fmtD(ten.endDate))
+          ),
+          exp&&h('div',{style:{marginTop:8,background:'#FFF7ED',border:'1px solid #FED7AA',borderRadius:9,padding:'7px 11px',fontSize:12,color:'#B45309',fontWeight:600}},'⚠️ Hợp đồng hết hạn sau '+dl+' ngày'),
+          h('div',{style:{display:'flex',gap:8,marginTop:10}},
+            h(Btn,{variant:'secondary',style:{flex:1,padding:'8px',fontSize:12},onClick:()=>setView(ten)},'👁 Xem'),
+            h(Btn,{variant:'secondary',style:{flex:1,padding:'8px',fontSize:12},onClick:()=>open(ten)},'✏️ Sửa'),
+            h(Btn,{variant:'danger',style:{flex:1,padding:'8px',fontSize:12},onClick:()=>terminate(ten.id)},'🚪 Kết thúc')
+          )
+        );
+      }),
+      tenants.filter(t=>!t.active).length>0&&h('div',null,
+        h(SectTitle,null,'Đã rời đi'),
+        tenants.filter(t=>!t.active).map(t=>h('div',{key:t.id,className:'card',style:{opacity:0.6}},
+          h('div',{style:{fontWeight:600,color:'#64748B'}},'👤 '+t.name+' · '+getRoom(t.roomId)?.name),
+          h('div',{style:{fontSize:12,color:'#94A3B8'}},fmtD(t.startDate)+' — '+fmtD(t.endDate))
+        ))
+      )
+    ),
+
+    modal&&h(Modal,{title:modal==='add'?'Thêm người thuê':'Sửa hồ sơ',onClose:()=>setModal(null)},
+      h(Inp,{label:'Họ và tên',value:form.name,onChange:e=>f('name',e.target.value),placeholder:'Nguyễn Văn A'}),
+      h(Inp,{label:'Số điện thoại',value:form.phone,onChange:e=>f('phone',e.target.value),placeholder:'09xxxxxxxx',type:'tel'}),
+      h(Inp,{label:'Số CCCD',value:form.cccd,onChange:e=>f('cccd',e.target.value),placeholder:'012345678901'}),
+      h(Sel,{label:'Phòng',value:form.roomId,onChange:e=>f('roomId',e.target.value),opts:[['','-- Chọn phòng --'],...rooms.map(r=>[r.id,r.name+' ('+SR[r.status]?.label+')'])]}),
+      h('div',{className:'grid2'},
+        h(Inp,{label:'Ngày bắt đầu',type:'date',value:form.startDate,onChange:e=>f('startDate',e.target.value)}),
+        h(Inp,{label:'Ngày kết thúc',type:'date',value:form.endDate,onChange:e=>f('endDate',e.target.value)})
+      ),
+      h('div',{style:{display:'flex',gap:10,marginTop:8}},
+        h(Btn,{variant:'secondary',style:{flex:1},onClick:()=>setModal(null)},'Hủy'),
+        h(Btn,{style:{flex:2},onClick:save},'💾 Lưu')
+      )
+    ),
+
+    view&&h(Modal,{title:'Chi tiết người thuê',onClose:()=>setView(null)},
+      ...[['👤 Họ tên',view.name],['📱 SĐT',view.phone],['🪪 CCCD',view.cccd],['🏠 Phòng',getRoom(view.roomId)?.name],['📅 Bắt đầu',fmtD(view.startDate)],['📅 Kết thúc',fmtD(view.endDate)]].map(([k,v])=>
+        h('div',{key:k,className:'info-row'},h('span',{className:'k'},k),h('span',{className:'v'},v))
+      ),
+      h(Btn,{style:{width:'100%',marginTop:16},onClick:()=>{
+        const d=new Date(view.endDate);d.setFullYear(d.getFullYear()+1);
+        setTenants(tenants.map(t=>t.id===view.id?{...t,endDate:d.toISOString().slice(0,10)}:t));
+        setView(null);
+      }},'🔄 Gia hạn thêm 1 năm')
+    )
+  );
+}
+
+// ===== INVOICES =====
+function Invoices({invoices,setInvoices,rooms,tenants}) {
+  const [mo,setMo]=useState(curMonth());
+  const [showCreate,setShowCreate]=useState(false);
+  const [viewInv,setViewInv]=useState(null);
+  const [form,setForm]=useState({roomId:'',month:curMonth(),electricOld:'',electricNew:'',otherFees:[]});
+  const [nf,setNf]=useState({name:'',amount:''});
+  const filt=invoices.filter(i=>i.month===mo);
+  const getRoom=id=>rooms.find(r=>r.id===id);
+  const getTenant=id=>tenants.find(t=>t.id===id);
+  const calcTotal=f=>{
+    const r=getRoom(+f.roomId);if(!r)return 0;
+    const el=(+f.electricNew-+f.electricOld)*r.electric;
+    const fees=f.otherFees.reduce((s,x)=>s+(+x.amount),0);
+    return r.price+el+r.water+r.internet+fees;
+  };
+  const create=()=>{
+    const r=getRoom(+form.roomId);if(!r||!form.electricNew)return;
+    const ten=tenants.find(t=>t.roomId===r.id&&t.active);
+    setInvoices([...invoices,{id:Date.now(),roomId:r.id,tenantId:ten?.id,month:form.month,rentAmount:r.price,electricOld:+form.electricOld,electricNew:+form.electricNew,waterAmount:r.water,internetAmount:r.internet,otherFees:form.otherFees,status:'unpaid',paidDate:null,paymentMethod:null,total:calcTotal(form)}]);
+    setShowCreate(false);setForm({roomId:'',month:curMonth(),electricOld:'',electricNew:'',otherFees:[]});
+  };
+  const f=(k,v)=>setForm(p=>({...p,[k]:v}));
+
+  return h('div',null,
+    h('div',{className:'page-header'},
+      h('div',{className:'row'},
+        h('div',null,h('h2',null,'Hóa đơn'),h('div',{className:'sub'},filt.length+' hóa đơn')),
+        h(Btn,{onClick:()=>setShowCreate(true),style:{padding:'8px 16px',fontSize:13}},'+ Tạo HĐ')
+      )
+    ),
+    h('div',{style:{padding:'14px 16px 0'}},
+      h(Field,{label:'Chọn tháng'},h('input',{type:'month',value:mo,onChange:e=>setMo(e.target.value),style:{width:'100%',padding:'11px 12px',borderRadius:10,border:'1.5px solid #E2E8F0',fontSize:14,background:'#F8FAFC',WebkitAppearance:'none'}})),
+      filt.length===0&&h('div',{className:'empty'},h('div',{className:'e-ico'},'📄'),h('p',null,'Chưa có hóa đơn tháng này')),
+      filt.map(inv=>{
+        const r=getRoom(inv.roomId);const ten=getTenant(inv.tenantId);
+        return h('div',{key:inv.id,className:'card tappable',onClick:()=>setViewInv(inv)},
+          h('div',{className:'row',style:{marginBottom:8}},
+            h('div',null,
+              h('div',{style:{fontWeight:700,color:'#1E3A5F',fontSize:15}},r?.name),
+              h('div',{style:{fontSize:12,color:'#64748B'}},ten?.name+' · T'+inv.month.slice(5)+'/'+inv.month.slice(0,4))
+            ),
+            h(Badge,{status:inv.status,map:SI})
+          ),
+          h('div',{style:{fontSize:20,fontWeight:800,color:'#1A56DB'}},fmt(inv.total)),
+          h('div',{style:{fontSize:12,color:'#94A3B8',marginTop:4}},'Thuê: '+fmtS(inv.rentAmount)+' · Điện: '+(inv.electricNew-inv.electricOld)+' số · Nước: '+fmtS(inv.waterAmount))
+        );
+      })
+    ),
+
+    showCreate&&h(Modal,{title:'Tạo hóa đơn mới',onClose:()=>setShowCreate(false)},
+      h(Sel,{label:'Phòng',value:form.roomId,onChange:e=>f('roomId',e.target.value),opts:[['','-- Chọn phòng --'],...rooms.filter(r=>r.status==='rented').map(r=>[r.id,r.name])]}),
+      h(Field,{label:'Tháng'},h('input',{type:'month',value:form.month,onChange:e=>f('month',e.target.value),style:{width:'100%',padding:'11px 12px',borderRadius:10,border:'1.5px solid #E2E8F0',fontSize:14,background:'#F8FAFC',WebkitAppearance:'none'}})),
+      h('div',{className:'grid2'},
+        h(Inp,{label:'Chỉ số điện đầu',type:'number',value:form.electricOld,onChange:e=>f('electricOld',e.target.value)}),
+        h(Inp,{label:'Chỉ số điện cuối',type:'number',value:form.electricNew,onChange:e=>f('electricNew',e.target.value)})
+      ),
+      form.roomId&&form.electricNew&&h('div',{style:{background:'#EBF5FF',borderRadius:9,padding:'10px 12px',marginBottom:12}},
+        h('div',{style:{fontSize:14,fontWeight:700,color:'#1A56DB'}},'Dự tính: '+fmt(calcTotal(form))),
+        h('div',{style:{fontSize:12,color:'#64748B',marginTop:3}},'Điện: '+(+form.electricNew-+form.electricOld)+' số × '+getRoom(+form.roomId)?.electric.toLocaleString()+'đ = '+fmt((+form.electricNew-+form.electricOld)*(getRoom(+form.roomId)?.electric||0)))
+      ),
+      h('div',null,
+        h('label',{style:{display:'block',fontSize:12,fontWeight:600,color:'#475569',marginBottom:6}},'Phí khác'),
+        form.otherFees.map((fee,i)=>h('div',{key:i,style:{display:'flex',gap:8,alignItems:'center',marginBottom:6}},
+          h('span',{style:{flex:1,fontSize:13,color:'#1E3A5F'}},fee.name+': '+fmtS(fee.amount)),
+          h('button',{onClick:()=>f('otherFees',form.otherFees.filter((_,j)=>j!==i)),style:{background:'none',border:'none',color:'#EF4444',fontSize:18}},'✕')
+        )),
+        h('div',{style:{display:'flex',gap:8,marginBottom:12}},
+          h('input',{placeholder:'Tên phí',value:nf.name,onChange:e=>setNf(p=>({...p,name:e.target.value})),style:{flex:1,padding:'9px 10px',borderRadius:9,border:'1.5px solid #E2E8F0',fontSize:13}}),
+          h('input',{placeholder:'Số tiền',type:'number',value:nf.amount,onChange:e=>setNf(p=>({...p,amount:e.target.value})),style:{width:90,padding:'9px 10px',borderRadius:9,border:'1.5px solid #E2E8F0',fontSize:13}}),
+          h('button',{onClick:()=>{if(nf.name&&nf.amount){f('otherFees',[...form.otherFees,{name:nf.name,amount:+nf.amount}]);setNf({name:'',amount:''});}},style:{background:'#EBF5FF',border:'none',borderRadius:9,color:'#1A56DB',fontWeight:700,padding:'9px 14px',fontSize:16}},'+')
+        )
+      ),
+      h('div',{style:{display:'flex',gap:10}},
+        h(Btn,{variant:'secondary',style:{flex:1},onClick:()=>setShowCreate(false)},'Hủy'),
+        h(Btn,{style:{flex:2},onClick:create},'📄 Tạo hóa đơn')
+      )
+    ),
+
+    viewInv&&h(Modal,{title:'Hóa đơn – '+getRoom(viewInv.roomId)?.name,onClose:()=>setViewInv(null)},
+      h('div',{style:{fontSize:12,color:'#94A3B8',marginBottom:12}},'Tháng '+viewInv.month.slice(5)+'/'+viewInv.month.slice(0,4)+' · '+getTenant(viewInv.tenantId)?.name),
+      ...[['Tiền thuê',fmt(viewInv.rentAmount)],['Tiền điện ('+( viewInv.electricNew-viewInv.electricOld)+' số)',fmt((viewInv.electricNew-viewInv.electricOld)*(getRoom(viewInv.roomId)?.electric||0))],['Tiền nước',fmt(viewInv.waterAmount)],['Tiền mạng',fmt(viewInv.internetAmount)],...viewInv.otherFees.map(f=>[f.name,fmt(f.amount)])].map(([k,v])=>h('div',{key:k,className:'info-row'},h('span',{className:'k'},k),h('span',{className:'v'},v))),
+      h('div',{className:'total-row'},h('span',{className:'k'},'Tổng cộng'),h('span',{className:'v'},fmt(viewInv.total))),
+      h('div',{style:{marginTop:6}},h(Badge,{status:viewInv.status,map:SI})),
+      viewInv.paidDate&&h('div',{style:{fontSize:12,color:'#64748B',marginTop:6}},'Thanh toán: '+fmtD(viewInv.paidDate)+' · '+viewInv.paymentMethod)
+    )
+  );
+}
+
+// ===== PAYMENTS =====
+function Payments({invoices,setInvoices,rooms,tenants}) {
+  const [filter,setFilter]=useState('all');
+  const [payModal,setPayModal]=useState(null);
+  const [pf,setPf]=useState({method:'Chuyển khoản',date:today()});
+  const filt=filter==='all'?invoices:invoices.filter(i=>i.status===filter);
+  const getRoom=id=>rooms.find(r=>r.id===id);
+  const getTenant=id=>tenants.find(t=>t.id===id);
+  const totalUnpaid=invoices.filter(i=>i.status!=='paid').reduce((s,i)=>s+i.total,0);
+  const totalPaid=invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+i.total,0);
+  const markPaid=()=>{setInvoices(invoices.map(i=>i.id===payModal.id?{...i,status:'paid',paidDate:pf.date,paymentMethod:pf.method}:i));setPayModal(null);};
+
+  return h('div',null,
+    h('div',{className:'page-header'},
+      h('h2',null,'Theo dõi thu tiền'),h('div',{className:'sub'},'Quản lý thanh toán')
+    ),
+    h('div',{style:{padding:'14px 16px 0'}},
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}},
+        h('div',{style:{background:'#F0FDF4',border:'1.5px solid #86EFAC',borderRadius:13,padding:'12px 14px'}},
+          h('div',{style:{fontSize:11,color:'#166534',fontWeight:700}},'ĐÃ THU'),
+          h('div',{style:{fontSize:20,fontWeight:800,color:'#16A34A'}},fmtS(totalPaid))
+        ),
+        h('div',{style:{background:'#FEF2F2',border:'1.5px solid #FCA5A5',borderRadius:13,padding:'12px 14px'}},
+          h('div',{style:{fontSize:11,color:'#991B1B',fontWeight:700}},'CẦN THU'),
+          h('div',{style:{fontSize:20,fontWeight:800,color:'#EF4444'}},fmtS(totalUnpaid))
+        )
+      ),
+      h('div',{className:'tabs',style:{marginBottom:14}},
+        ...([['all','Tất cả'],['unpaid','Chưa thu'],['overdue','Quá hạn'],['paid','Đã thu']]).map(([v,l])=>
+          h('button',{key:v,className:'tab '+(filter===v?'on':'off'),onClick:()=>setFilter(v)},l)
+        )
+      ),
+      filt.length===0&&h('div',{className:'empty'},h('div',{className:'e-ico'},'💰'),h('p',null,'Không có hóa đơn nào')),
+      filt.map(inv=>{
+        const r=getRoom(inv.roomId);const t=getTenant(inv.tenantId);
+        return h('div',{key:inv.id,className:'card'},
+          h('div',{className:'row',style:{marginBottom:8}},
+            h('div',null,h('div',{style:{fontWeight:700,color:'#1E3A5F'}},r?.name),h('div',{style:{fontSize:12,color:'#64748B'}},t?.name+' · T'+inv.month.slice(5)+'/'+inv.month.slice(0,4))),
+            h(Badge,{status:inv.status,map:SI})
+          ),
+          h('div',{style:{fontSize:20,fontWeight:800,color:inv.status==='paid'?'#22C55E':'#EF4444'}},fmt(inv.total)),
+          inv.status==='paid'
+            ?h('div',{style:{fontSize:12,color:'#64748B',marginTop:6}},'✅ '+fmtD(inv.paidDate)+' · '+inv.paymentMethod)
+            :h('div',{style:{display:'flex',gap:8,marginTop:10}},
+              h(Btn,{style:{flex:1,padding:'8px',fontSize:13},onClick:()=>{setPayModal(inv);setPf({method:'Chuyển khoản',date:today()})}},'💰 Xác nhận thu'),
+              inv.status!=='overdue'&&h(Btn,{variant:'danger',style:{padding:'8px 12px',fontSize:13},onClick:()=>setInvoices(invoices.map(i=>i.id===inv.id?{...i,status:'overdue'}:i))},'⚠️')
+            )
+        );
+      })
+    ),
+    payModal&&h(Modal,{title:'Xác nhận thanh toán',onClose:()=>setPayModal(null)},
+      h('div',{style:{background:'#EBF5FF',borderRadius:11,padding:14,marginBottom:14,fontSize:16,fontWeight:700,color:'#1A56DB',textAlign:'center'}},fmt(payModal.total)),
+      h(Sel,{label:'Phương thức',value:pf.method,onChange:e=>setPf(p=>({...p,method:e.target.value})),opts:[['Chuyển khoản','Chuyển khoản'],['Tiền mặt','Tiền mặt'],['QR Code','QR Code'],['Ví điện tử','Ví điện tử']]}),
+      h(Inp,{label:'Ngày thu',type:'date',value:pf.date,onChange:e=>setPf(p=>({...p,date:e.target.value}))}),
+      h('div',{style:{display:'flex',gap:10,marginTop:8}},
+        h(Btn,{variant:'secondary',style:{flex:1},onClick:()=>setPayModal(null)},'Hủy'),
+        h(Btn,{variant:'success',style:{flex:2},onClick:markPaid},'✅ Xác nhận đã thu')
+      )
+    )
+  );
+}
+
+// ===== MAINTENANCE =====
+function Maintenance({maintenance,setMaintenance,rooms}) {
+  const [filter,setFilter]=useState('all');
+  const [modal,setModal]=useState(false);
+  const [form,setForm]=useState({roomId:'',description:'',priority:'low'});
+  const filt=filter==='all'?maintenance:maintenance.filter(m=>m.status===filter);
+  const getRoom=id=>rooms.find(r=>r.id===id);
+  const add=()=>{if(!form.roomId||!form.description)return;setMaintenance([...maintenance,{id:Date.now(),roomId:+form.roomId,description:form.description,priority:form.priority,status:'pending',createdAt:today(),updatedAt:today()}]);setModal(false);setForm({roomId:'',description:'',priority:'low'});};
+  const setS=(id,s)=>setMaintenance(maintenance.map(m=>m.id===id?{...m,status:s,updatedAt:today()}:m));
+
+  return h('div',null,
+    h('div',{className:'page-header'},
+      h('div',{className:'row'},
+        h('div',null,h('h2',null,'Bảo trì'),h('div',{className:'sub'},maintenance.filter(m=>m.status!=='done').length+' đang xử lý')),
+        h(Btn,{onClick:()=>setModal(true),style:{padding:'8px 16px',fontSize:13}},'+ Thêm')
+      )
+    ),
+    h('div',{style:{padding:'14px 16px 0'}},
+      h('div',{className:'tabs',style:{marginBottom:14}},
+        ...([['all','Tất cả'],['pending','Chờ xử lý'],['in-progress','Đang xử lý'],['done','Hoàn thành']]).map(([v,l])=>
+          h('button',{key:v,className:'tab '+(filter===v?'on':'off'),onClick:()=>setFilter(v)},l)
+        )
+      ),
+      filt.length===0&&h('div',{className:'empty'},h('div',{className:'e-ico'},'🔧'),h('p',null,'Không có yêu cầu bảo trì')),
+      filt.map(m=>h('div',{key:m.id,className:'card'},
+        h('div',{className:'row',style:{marginBottom:8}},
+          h('div',null,
+            h('div',{style:{fontWeight:700,color:'#1E3A5F'}},getRoom(m.roomId)?.name),
+            h('span',{style:{fontSize:11,fontWeight:600,color:PRIO[m.priority]?.color}},'● '+PRIO[m.priority]?.label)
+          ),
+          h(Badge,{status:m.status,map:SM})
+        ),
+        h('div',{style:{fontSize:14,color:'#334155',marginBottom:8}},m.description),
+        h('div',{style:{fontSize:11,color:'#94A3B8',marginBottom:m.status!=='done'?10:0}},'Tạo: '+fmtD(m.createdAt)+' · CX: '+fmtD(m.updatedAt)),
+        m.status!=='done'&&h('div',{style:{display:'flex',gap:8}},
+          m.status==='pending'&&h(Btn,{variant:'secondary',style:{flex:1,padding:'7px',fontSize:12},onClick:()=>setS(m.id,'in-progress')},'🔄 Bắt đầu'),
+          h(Btn,{variant:'success',style:{flex:1,padding:'7px',fontSize:12},onClick:()=>setS(m.id,'done')},'✅ Hoàn thành')
+        )
+      ))
+    ),
+    modal&&h(Modal,{title:'Yêu cầu bảo trì mới',onClose:()=>setModal(false)},
+      h(Sel,{label:'Phòng',value:form.roomId,onChange:e=>setForm(p=>({...p,roomId:e.target.value})),opts:[['','-- Chọn phòng --'],...rooms.map(r=>[r.id,r.name])]}),
+      h(Sel,{label:'Mức ưu tiên',value:form.priority,onChange:e=>setForm(p=>({...p,priority:e.target.value})),opts:[['low','Thấp'],['high','Cao'],['urgent','Khẩn cấp']]}),
+      h(Field,{label:'Mô tả vấn đề'},h('textarea',{value:form.description,onChange:e=>setForm(p=>({...p,description:e.target.value})),placeholder:'Mô tả chi tiết...'})),
+      h('div',{style:{display:'flex',gap:10}},
+        h(Btn,{variant:'secondary',style:{flex:1},onClick:()=>setModal(false)},'Hủy'),
+        h(Btn,{style:{flex:2},onClick:add},'🔧 Ghi nhận')
+      )
+    )
+  );
+}
+
+// ===== NOTIFICATIONS =====
+function Notifications({notifications,setNotifications}) {
+  const markAll=()=>setNotifications(notifications.map(n=>({...n,read:true})));
+  const markOne=id=>setNotifications(notifications.map(n=>n.id===id?{...n,read:true}:n));
+  return h('div',null,
+    h('div',{className:'page-header'},
+      h('div',{className:'row'},
+        h('h2',null,'Thông báo'),
+        h('button',{onClick:markAll,style:{fontSize:12,color:'#93C5FD',background:'none',border:'none',fontWeight:600}},'Đọc tất cả')
+      )
+    ),
+    h('div',{style:{padding:'14px 16px 0'}},
+      notifications.length===0&&h('div',{className:'empty'},h('div',{className:'e-ico'},'🔔'),h('p',null,'Không có thông báo')),
+      notifications.map(n=>h('div',{key:n.id,className:'card tappable',style:{display:'flex',gap:12,alignItems:'flex-start',background:n.read?'#fff':'#EBF5FF',border:n.read?'1px solid transparent':'1.5px solid #93C5FD',cursor:'pointer'},onClick:()=>markOne(n.id)},
+        h('div',{style:{fontSize:24,marginTop:2}},NICN[n.type]||'📢'),
+        h('div',{style:{flex:1}},
+          h('div',{style:{fontWeight:700,color:'#1E3A5F',fontSize:14}},n.title),
+          h('div',{style:{fontSize:13,color:'#475569',marginTop:3}},n.message),
+          h('div',{style:{fontSize:11,color:'#94A3B8',marginTop:6}},fmtD(n.createdAt))
+        ),
+        !n.read&&h('div',{style:{width:8,height:8,background:'#1A56DB',borderRadius:'50%',marginTop:6,flexShrink:0}})
+      ))
+    )
+  );
+}
+
+// ===== REPORTS =====
+function Reports({invoices,rooms}) {
+  const months=[...new Set(invoices.map(i=>i.month))].sort().reverse();
+  const getMD=mo=>{const inv=invoices.filter(i=>i.month===mo);return{month:mo,total:inv.reduce((s,i)=>s+i.total,0),paid:inv.filter(i=>i.status==='paid').reduce((s,i)=>s+i.total,0),count:inv.length};};
+  const last6=months.slice(0,6).map(getMD).reverse();
+  const maxV=Math.max(...last6.map(d=>d.total),1);
+
+  return h('div',null,
+    h('div',{className:'page-header'},h('h2',null,'Báo cáo doanh thu'),h('div',{className:'sub'},'Thống kê tài chính')),
+    h('div',{style:{padding:'14px 16px 0'}},
+      h('div',{className:'card'},
+        h('div',{style:{fontWeight:700,color:'#1E3A5F',marginBottom:14}},'📊 Doanh thu 6 tháng gần nhất'),
+        h('div',{className:'chart-wrap'},
+          last6.map(d=>h('div',{key:d.month,className:'chart-col'},
+            h('div',{className:'chart-val'},fmtS(d.paid)),
+            h('div',{className:'chart-bars',style:{height:80}},
+              h('div',{className:'bar-bg',style:{height:Math.max((d.total/maxV)*80,2)+'px'}}),
+              h('div',{className:'bar-fg',style:{height:Math.max((d.paid/maxV)*80,2)+'px'}})
+            ),
+            h('div',{className:'chart-label'},d.month.slice(5)+'/'+d.month.slice(2,4))
+          ))
+        ),
+        h('div',{style:{display:'flex',gap:16,fontSize:11,color:'#64748B',marginTop:10}},
+          h('span',null,h('span',{style:{display:'inline-block',width:10,height:10,background:'#1A56DB',borderRadius:2,marginRight:4}}),'Đã thu'),
+          h('span',null,h('span',{style:{display:'inline-block',width:10,height:10,background:'#EBF5FF',border:'1px solid #93C5FD',borderRadius:2,marginRight:4}}),'Tổng phát sinh')
+        )
+      ),
+      h(SectTitle,null,'Chi tiết theo tháng'),
+      last6.slice().reverse().map(d=>h('div',{key:d.month,className:'card'},
+        h('div',{className:'row'},
+          h('div',null,h('div',{style:{fontWeight:700,color:'#1E3A5F'}},'Tháng '+d.month.slice(5)+'/'+d.month.slice(0,4)),h('div',{style:{fontSize:12,color:'#64748B',marginTop:2}},d.count+' hóa đơn')),
+          h('div',{style:{textAlign:'right'}},
+            h('div',{style:{fontWeight:800,color:'#1A56DB',fontSize:16}},fmt(d.paid)),
+            d.total!==d.paid&&h('div',{style:{fontSize:12,color:'#EF4444'}},'Còn lại: '+fmt(d.total-d.paid))
+          )
+        )
+      )),
+      h(SectTitle,null,'Theo phòng'),
+      rooms.map(r=>{
+        const rev=invoices.filter(i=>i.roomId===r.id&&i.status==='paid').reduce((s,i)=>s+i.total,0);
+        return h('div',{key:r.id,className:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('div',null,h('div',{style:{fontWeight:700,color:'#1E3A5F'}},r.name),h(Badge,{status:r.status,map:SR})),
+          h('div',{style:{fontWeight:800,color:'#16A34A',fontSize:15}},fmt(rev))
+        );
+      })
+    )
+  );
+}
+
+// ===== MAIN APP =====
+function App() {
+  const [user,setUser]=useState(()=>{
+    try {
+      const creds=load('user_credentials',DEF_USER);
+      const loggedIn=load('logged_in',false);
+      if(loggedIn&&creds&&creds.username) return creds;
+      const session=getCookie('session_user');
+      if(session&&session.username){save('logged_in',true);return session;}
+      return null;
+    } catch(e){return null;}
+  });
+  const [page,setPage]=useState('dashboard');
+  const [syncing,setSyncing]=useState(false);
+  const [syncMsg,setSyncMsg]=useState('');
+  const [rooms,setRoomsState]=useState(()=>load('rooms',INIT_ROOMS));
+  const [tenants,setTenantsState]=useState(()=>load('tenants',INIT_TENANTS));
+  const [invoices,setInvoicesState]=useState(()=>load('invoices',INIT_INVOICES));
+  const [maintenance,setMaintenanceState]=useState(()=>load('maintenance',INIT_MAINTENANCE));
+  const [notifications,setNotificationsState]=useState(()=>load('notifications',INIT_NOTIFS));
+
+  // Sync từ cloud khi khởi động
+  useEffect(()=>{
+    const syncFromCloud = async () => {
+      setSyncing(true);
+      setSyncMsg('Đang đồng bộ dữ liệu...');
+      try {
+        const [cr,ct,ci,cm,cn] = await Promise.all([
+          fsLoad('rooms',INIT_ROOMS),
+          fsLoad('tenants',INIT_TENANTS),
+          fsLoad('invoices',INIT_INVOICES),
+          fsLoad('maintenance',INIT_MAINTENANCE),
+          fsLoad('notifications',INIT_NOTIFS),
+        ]);
+        setRoomsState(cr);
+        setTenantsState(ct);
+        setInvoicesState(ci);
+        setMaintenanceState(cm);
+        setNotificationsState(cn);
+        setSyncMsg('✅ Đồng bộ thành công!');
+        setTimeout(()=>setSyncMsg(''),2000);
+      } catch(e) {
+        setSyncMsg('⚠️ Dùng dữ liệu offline');
+        setTimeout(()=>setSyncMsg(''),3000);
+      }
+      setSyncing(false);
+    };
+    syncFromCloud();
+  },[]);
+
+  const setRooms=v=>{setRoomsState(v);fsSave('rooms',v);};
+  const setTenants=v=>{setTenantsState(v);fsSave('tenants',v);};
+  const setInvoices=v=>{setInvoicesState(v);fsSave('invoices',v);};
+  const setMaintenance=v=>{setMaintenanceState(v);fsSave('maintenance',v);};
+  const setNotifications=v=>{setNotificationsState(v);fsSave('notifications',v);};
+
+  const onLogout=()=>{save('logged_in',false);setCookie('session_user',null,-1);setUser(null);setPage('dashboard');};
+  const onLogin=u=>{setUser(u);};
+
+  const unread=notifications.filter(n=>!n.read).length;
+  const nav=[
+    {id:'dashboard',ico:'🏠',lbl:'Tổng quan'},
+    {id:'rooms',ico:'🔑',lbl:'Phòng'},
+    {id:'tenants',ico:'👤',lbl:'Người thuê'},
+    {id:'invoices',ico:'📄',lbl:'Hóa đơn'},
+    {id:'payments',ico:'💰',lbl:'Thu tiền'},
+    {id:'maintenance',ico:'🔧',lbl:'Bảo trì'},
+    {id:'notifications',ico:'🔔',lbl:'Thông báo',badge:unread},
+    {id:'reports',ico:'📊',lbl:'Báo cáo'},
+  ];
+
+  if(!user) return h(Login,{onLogin});
+
+  const props={rooms,setRooms,tenants,setTenants,invoices,setInvoices,maintenance,setMaintenance,notifications,setNotifications,setPage,user,onLogout};
+  const pages={dashboard:Dashboard,rooms:Rooms,tenants:Tenants,invoices:Invoices,payments:Payments,maintenance:Maintenance,notifications:Notifications,reports:Reports};
+  const PageComp=pages[page]||Dashboard;
+
+  return h('div',{id:'app'},
+    h('div',{id:'page'},h(PageComp,props)),
+    h('div',null,
+    syncMsg&&h('div',{style:{position:'fixed',top:0,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:480,background:syncMsg.includes('✅')?'#16A34A':syncMsg.includes('⚠️')?'#F59E0B':'#1A56DB',color:'#fff',textAlign:'center',padding:'8px',fontSize:13,fontWeight:600,zIndex:9999,paddingTop:'calc(env(safe-area-inset-top,0px) + 8px)'}},syncMsg),
+    h('nav',{id:'nav'},
+      nav.map(item=>h('button',{key:item.id,className:'nav-btn '+(page===item.id?'active':''),onClick:()=>setPage(item.id)},
+        h('div',{className:'nav-icon'},
+          item.ico,
+          item.badge>0&&h('span',{className:'nav-badge'},item.badge)
+        ),
+        h('span',{className:'nav-label'},item.lbl),
+        page===item.id&&h('div',{className:'nav-bar'})
+      ))
+    )
+  ));
+}
+
+ReactDOM.render(h(App,null), document.getElementById('root'));
+</script>
+
+
+
+
+<script>
+
+// ===== FIREBASE INIT =====
+const firebaseConfig = {
+  apiKey: "AIzaSyBEDR9Vf50b9Hac2aTcqw3ZaVBEhrb925k",
+  authDomain: "nha-tro-20771.firebaseapp.com",
+  projectId: "nha-tro-20771",
+  storageBucket: "nha-tro-20771.firebasestorage.app",
+  messagingSenderId: "768433595099",
+  appId: "1:768433595099:web:a0cffe1113f8839fc9e2fe"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const UID = 'owner'; // single user
+
+// ===== FIRESTORE HELPERS =====
+const fsGet = async (col) => {
+  try {
+    const snap = await db.collection('data_' + UID).doc(col).get();
+    return snap.exists ? snap.data().value : null;
+  } catch(e) { console.log('fsGet error:', e); return null; }
+};
+const fsSet = async (col, value) => {
+  try {
+    await db.collection('data_' + UID).doc(col).set({ value, updatedAt: new Date().toISOString() });
+    return true;
+  } catch(e) { console.log('fsSet error:', e); return false; }
+};
+const fsSave = (col, value) => {
+  // Lưu local ngay lập tức, sync cloud không chờ
+  save(col, value);
+  fsSet(col, value).catch(() => {});
+};
+const fsLoad = async (col, def) => {
+  // Ưu tiên cloud, fallback local
+  const cloud = await fsGet(col);
+  if (cloud !== null) {
+    save(col, cloud); // cập nhật cache local
+    return cloud;
+  }
+  return load(col, def);
+};
+
+
+// ===== PWA MANIFEST (inline) =====
+(function(){
+  const manifest = {
+    name: "Quản Lý Nhà Trọ",
+    short_name: "Nhà Trọ",
+    description: "Ứng dụng quản lý nhà trọ toàn diện",
+    start_url: ".",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#1A56DB",
+    theme_color: "#1A56DB",
+    icons: [{
+      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231A56DB'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E",
+      sizes: "192x192", type: "image/svg+xml"
+    }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
+})();
+
+// ===== SERVICE WORKER (cache offline) =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    const sw = `
+const CACHE = 'nhatro-v2';
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.add(self.location.href)));
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match(self.location.href))));
+});`;
+    const blob = new Blob([sw], {type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(){});
+  });
+}
+
+// ===== iOS INSTALL BANNER =====
+(function(){
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = /safari/i.test(navigator.userAgent) && !/chrome|crios|fxios/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('banner_v2');
+  if (!isIOS || isStandalone || dismissed) return;
+
+  setTimeout(function() {
+    const el = document.createElement('div');
+    el.id = 'install-banner';
+    el.innerHTML = `<div style="position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;z-index:9999;background:linear-gradient(135deg,#1E3A5F,#1A56DB);color:#fff;padding:18px 20px 36px;border-radius:22px 22px 0 0;box-shadow:0 -6px 30px rgba(0,0,0,0.35);font-family:-apple-system,sans-serif;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;margin:0 auto 16px;"></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+        <div style="width:52px;height:52px;background:rgba(255,255,255,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">🏠</div>
+        <div style="flex:1;">
+          <div style="font-weight:800;font-size:16px;">Cài App Nhà Trọ lên iPhone</div>
+          <div style="font-size:13px;color:#93C5FD;margin-top:3px;">Dùng được offline • Nhanh như app thật</div>
+        </div>
+        <button onclick="document.getElementById('install-banner').remove();localStorage.setItem('banner_v2','1')" style="background:rgba(255,255,255,0.15);border:none;border-radius:9px;color:#fff;width:30px;height:30px;font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
+      </div>
+      <div style="background:rgba(0,0,0,0.2);border-radius:14px;padding:14px 16px;font-size:13px;line-height:2;">
+        <div>1️⃣&nbsp; Nhấn nút <span style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:6px;font-weight:600;">Chia sẻ</span> &nbsp;⬆️&nbsp; ở thanh dưới Safari</div>
+        <div>2️⃣&nbsp; Chọn <strong>"Thêm vào Màn hình chính"</strong> 📲</div>
+        <div>3️⃣&nbsp; Nhấn <strong>"Thêm"</strong> ở góc trên bên phải ✅</div>
+      </div>
+      <div style="margin-top:12px;text-align:center;font-size:11px;color:rgba(255,255,255,0.4);">⚡ Dữ liệu lưu trên iPhone của bạn, không gửi đi đâu</div>
+    </div>`;
+    document.body.appendChild(el);
+  }, 2000);
+})();
+</script>
+
+</body>
+</html>
